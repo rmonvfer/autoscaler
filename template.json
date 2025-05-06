@@ -1,0 +1,16 @@
+{
+  "services": [
+    {
+      "name": "autoscaler",
+      "source": { "image": "ghcr.io/rmonvfer/autoscaler:latest" },
+      "envVars": {
+        "SERVICE_ID": "svc_123...",
+        "CPU_HIGH": "75",
+        "CPU_LOW": "30",
+        "MIN_REPLICA": "1",
+        "MAX_REPLICA": "5",
+        "TOKEN": { "fromService": "<project token id>" }
+      }
+    }
+  ]
+}
