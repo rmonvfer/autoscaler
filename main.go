@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"log"
 	"math"
 	"net/http"
@@ -105,7 +106,7 @@ func loadConfig() config {
 		return def
 	}
 	return config{
-		Token:     must("RAILWAY_TOKEN"), // Project‑Access‑Token or Team token
+		Token:     must("RAILWAY_TOKEN"),
 		ServiceID: must("SERVICE_ID"),
 		High:      parseF("CPU_HIGH", 75),
 		Low:       parseF("CPU_LOW", 30),
@@ -176,14 +177,20 @@ func doGraphQL(ctx context.Context, query string, vars map[string]interface{}, t
 	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(payload))
 	req.Header.Set("Content-Type", "application/json")
 
-	// prefer Project‑Access‑Token for least privilege
+	// prefer Project‑Access‑Token for the least privilege
 	req.Header.Set("Project-Access-Token", token)
 
 	res, err := http.DefaultClient.Do(req)
+
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("close err: %v", err)
+		}
+	}(res.Body)
 	return json.NewDecoder(res.Body).Decode(into)
 }
 
